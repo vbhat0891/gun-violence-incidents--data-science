@@ -1,0 +1,549 @@
+---
+title: "Analyis of Gun Violence Induced Injuries and Deaths in US"
+author:
+- Amro Quedan$^1$
+- Deepika Angelene Jantz$^2$
+- Naema Alalwachi$^3$
+- Vivek Bhat Hosmat$^2$
+- $^1$Department of Electrical Engineering,University of Nebraska at Lincoln
+- $^2$College of Information Science and Quality Assurance,University of Nebraska at Omaha
+- $^3$Department of Mathematics,University of Nebraska at Omaha
+date:  "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document:
+    keep_tex: yes
+abstract: |
+  The issue of gun violence is of paramount importance in the United States with an increase in the number of cases in uncommon areas like the Schools, Apartments and other public places. Many numbers of innocent people which includes kids have fallen victim for these acts of violence. For example, America has six times as many firearm homicides as Canada and nearly 16 times as many as Germany. Our data set is originally from [*Gun Violence Archive*](http://www.gunviolencearchive.org/) formed in 2013, which is an online platform that records all the gun-related violence occurrs in the United States and has made it available to the General Public with accurate information. However, we found a partially cleaned data set on [*Kaggle.com*](https://www.kaggle.com/jameslko/gun-violence-data) and we opted this data set for our analysis. The dataset under consideration has roughly 240000 records (incidents). These incidents are dated between January 2013 and March 2018. We are analyzing the data to understand if injuries and killings due to gun violence are on the decline or not.We would like to analyze the impact of gun regulation in different states during the duration, to understand if the need for a license to buy a gun has an effect on number of gun-related violence and also understand the gun violence incidents in comparison to the population of the states. To aid this analysis, we would be using a suitable model, to attempt our forecast in the number of possible causalities due to gun violence in the near future.
+---
+
+# 1.Introduction:
+  In the recent past, the number of incidents related to gun violence has surfaced more often than usual. The issuance of gun licenses, permits to carry have been greatly debated following the uptick of gun violence-related incidents. Our primary motive of deciding upon this data set was to understand the reason for gun violence incidents, the factors leading to these incidents and is there a way to mitigate the incidents. There are numerous factors attributing to the increase in gun violence, with the dataset that we procured, we have tried to understand the spread of gun violation related incidents across United States.
+  
+  The following sections comprises of a brief overview of our datasets used and their summarization-
+  
+  * The purpose of doing this analysis, this section highlights the research questions we came up with before the start of our analysis.
+  
+  * About the data - this section gives an idea of where we got the data from and a few highlights about the data.
+  
+  * Data preparation section- this talks about the steps we followed to cleanse the data to get it to a usable state.
+  
+  * Exploratory analysis of the dataset we have and using a forecasting model to predict the variation in the gun violence incidents.
+  
+  * Our findings in terms of answers to the questions posed earlier and a forecasting model.
+  
+  * Eventually, the conclusion of analysis and visualization with possible future works in this direction.
+
+#1.1.Purpose:  
+We wanted to see if there are patterns in incidents across all states in the United States, we wanted to answer the questions like 
+  
+  * Do changes in the regulations related to the guns have an impact on the gun violations?
+  * How does the gun violations vary with the population of the state? Our assumption to start with is, Higher population will have higher gun violations.
+  * Is there a variation in number of incidents weekdays/weekends?
+  * Is there a seasonality influence on the number of incidents?
+  * Is there a pattern in the places at which the incidents have taken place?
+
+As part of the literature survey, we came across analysis by news journals [*Gun Violence Statistic Chart*](https://www.vox.com/policy-and-politics/2017/10/2/16399418/us-gun-violence-statistics-maps-charts) which primarily compares gun violence in America with other countries around the world. The number for gun violence is predominantly higher than other countries. It also gives a deeper understanding of the gun violence incidents in America across states in terms of homicides, mass shootings, gun laws to name a few. The second article [*Gun Violence Dividing America*](https://www.washingtonpost.com/news/wonk/wp/2018/05/31/the-surprising-way-gun-violence-is-dividing-america/?utm_term=.11736074b075) talks about the role of political affiliation to gun violence indents at a breadth. We also came across many other analysis done in Kaggle but almost all the analysis was done in python and can be found here [*Kaggle Store*](https://www.kaggle.com/jameslko/gun-violence-data/kernels).
+
+
+This report is constructed is prepared using the R [R-base] package knitr [R-knitr]. This project may
+be imported into the RStudio  or R environment and can be reproduced for further analysis.
+
+
+# 2.About the Data:
+
+ As stated, our data is originally obtained from Gun Violence Archieve**[GVA]**, which is a non-profit corporation, formed in 2013 to provide general public access to all the Gun-related violence in the United States. GVA will collect and check for accuracy, comprehensive information about gun-related violence in the U.S. and collate the details, in order to make it available for the general public. The Kaggle repository is a public forum that is used as a platform to host competitions and challenges, we used [__*Kaggle repository*__](https://www.kaggle.com/jameslko/gun-violence-data#gun-violence-data_01-2013_03-2018.csv) to consume our data, as this was already processed, we had to do minor tweaks to help in our analysis on our Research questions.In order to access this dataset, we need to register within their application. The dataset has roughly 240,000 records of gun violence that captures every detail of gun violence from 2013 to March 2018. 
+We have also considered to get details of the city wise population from [*US Population*](http://worldpopulationreview.com/us-cities/), to analyze for any interdependence of population to gun violence.  
+
+  The variables in the gun violence data set are, an Incident ID to uniquely identify each incidence of gun violence, Date of occurrence of the incident, Geographic information of the incident such as city, state, address, location, latitude and longitude, congressional district, state house district and senate house district. The data set also includes the source of the information about the incident, characteristics of the incident, and notes about each incident. The next set of variables state the information related to the kind of guns used in the incident. It also highlights details if the guns are stolen, if yes, it gives the count of stolen guns used. The dataset also gives in detail information about the participant involved - the age of the victims, the age group, participant gender. Please note, the participant here involves both the victim and offender.
+  
+  There is reasonable work done on this dataset which is available in kaggle(https://www.kaggle.com/jameslko/gun-violence-data/kernels). Majority of the work done is the mapping the number of incidents in United States, some have opted to do deep learning  on the data set.
+
+#2.1.Data Preparation:
+
+  This is one of the crucial parts of the project as it is of great importance to get the data in a form that can be easily analyzed. As our dataset was from Kaggle, it cleaned with no NA's in any of the columns. However, we still had to prepare it to extract meaningful inferences from the data. Here are some of the steps we adopted,
+
+- We aggregated the number of people injured and killed by state and then grouped by month, quarter and year for our analysis. 
+
+- We lowered the sate name case to merge our data to make a spatial polygons data frame.
+
+- To understand the influence of a State population to the occurrence of gun violence, we collected data of the [US World Population Review](http://worldpopulationreview.com/us-cities/),and manually added the state population. Once we had the State wise population, we summarized our dataset on the number of people killed to the overall population on the state and merged this data with the map of the United States and plotted this data as shown in **Figure 7**, to understand the pattern and plotted a heat-map, with more number of incidents highlighted in the darker shade of blue and less number of incidents with a lighter shade of blue.
+
+- We also extracted all the incidents of occurrence based on the days of the week i.e Sunday - Saturday, to understand if there is a daily pattern of gun violence.
+
+- Once we had the aggregated dataset, we melted the data by considering the ID to be datewise. This is how we considered plotting our side-by-side bar plots to get a better understanding in our analysis.
+
+- The data used to plot maps were also aggregated and melted to plot based on different categories. 
+
+- To find the deviation in the pattern of shootings,we employed a statistical approach of using z-score distribution on the States as shown in  **Figure 5**. In order to get the z-score, we calculated the mean and Standard deviation of the number of people killed, and grouped them based on State to understand the distribution.
+
+- To understand the influence of Gun Regulations, we considered a specific example by looking into the data of gun violence incidents in the State of Mississippi. We aggregated the incidents based on the number of victims and looked into regulations passed during specific months to learn and analyze the pattern of occurrence. The details of this is included in the **Figure 4**.
+
+
+# 2.2.Shortcomings:
+
+- For the year 2013, although the data is available it has a limited number of records making it insignificant. We understand that the gun archive.org recorded an incident only when there are 4 or more people injured or killed in an incident. However, this changed after January of 2014 with data being available for every incident occurred irrespective of the number of casualties.
+
+- For the year of 2018, the data is available only till March of 2018.
+
+- The data does not distinguish between the shooter and the victim in an incident. Due to this reason the number of people injured or killed in an incident may be a shooter or a victim.
+
+- Not all the data is available for Type of gun used in an incident and the place at which the incident occurred.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r table, echo=FALSE,results='hide', align='center'}
+library(captioner)
+table_nums <- captioner::captioner(prefix = "Table ")
+tab.1_cap <- table_nums(name = "tab_1", 
+                        caption = "Statistical Summarization of occurance of Gun Violence from January 2014 to March 2018")
+f.ref <- function(x) {
+  stringr::str_extract(table_nums(x), "[^:]*")
+  
+}
+```
+
+# 3.Overview:
+   After preparing the data, we considered categorizing our data yearly and aggregated the number of people killed and injured from 2014 to March 2018 to get the overall picture and number of people killed to help start our analysis. `r f.ref("tab_1")` gives a statistical overview of the occurrence of Gun Violence in the United States.
+
+
+
+
+```{r summary,echo=FALSE, warning=FALSE,message=FALSE,fig.cap=tab.1_cap}
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(reshape2)
+library(ggmap)
+library(knitr)
+library(stringr)
+library(zoo)
+gun_rawdata<-fread("gun-violence-data_01-2013_03-2018.csv")%>% filter(date >= "2014-01-01")
+gun1<-gun_rawdata%>%select("date","state","city_or_county","latitude","longitude","n_killed","n_injured")
+#exctract by year from date
+gun1$date<- year(gun1$date) 
+#tochange from upper to lower
+gun1$state<-tolower(gun1$state) 
+# sum of victims 
+gun1$victims <- gun1$n_killed + gun1$n_injured
+#create summary table
+gt<-gun1%>%select("date","n_killed","n_injured","victims")
+gtk<-gt%>%group_by(date)%>%
+  summarize('Sum Killed'=sum(n_killed), 
+            'Sum Injured'=sum(n_injured),
+            'Avg.Killed'=mean(n_killed),
+            'Avg.Injured'=mean(n_injured),
+            'Sd.Killed'= sd(n_killed), 
+            'Sd.Injured'= sd(n_injured))%>%
+  rename('Year' = date)
+
+
+kable(gtk, digit=2)
+```
+
+`r table_nums('tab_1')`
+
+
+
+
+
+
+
+# 4.Exploratory Analysis and Findings:
+
+In this section of exploratory analysis and visualization, we have made an attempt to come up with tables and plots to tease out the information hidden in the data set. We have chosen the most appropriate visualization to depict data to facilitate the readability of our plots. 
+
+
+
+
+The population in majority of the states is on the upswing and so is number of people possessing guns. With more number of guns we expect an increase in the number of people falling victims to gun violence.
+In the following **Figure 1**,which is a plot showing the Distribution of Gun Violence 2014-2018 we have analyzed the variation of number of gun violence-related incidents year on year between 2014-March of 2018. The plot consists of the total number of people killed, injured and victims(sum of injured and killed) along y-axis and year along x-axis. We see an upward trend in the number of victims between the years under consideration.
+
+
+```{r ,echo=FALSE, message=FALSE,fig.align='center', warning=FALSE,fig.width=6,fig.height=3}
+#library(plotly)
+#Yearwise Plots for Gun Violence-
+gunViolenceYearWise <-
+  gt %>%
+  filter(gt$date< 2018) %>%
+  group_by(date)%>%
+  summarize('Total Killed'=sum(n_killed), 
+            'Total Injured'=sum(n_injured),
+            'Total Victims'=sum(victims))
+plotGunViolYear <- melt(gunViolenceYearWise,id='date')
+p<-  ggplot(plotGunViolYear, aes(date, value, color=variable)) + 
+  geom_line(stat="identity",position="dodge")+
+  labs(x = "Year",
+       y="Number of people", caption= "Figure 1: Distribution of Gun Violence in USA 2014-2017" ) +
+  theme(plot.title = element_text(size= 10, face= "bold")) +
+  guides(fill=guide_legend(title=" "))
+p
+```
+
+
+The number of gun violence victims is directly proportional to the number of people on the streets. Usually, on the weekdays people are busy at work and tend to venture out on the weekends. This leads to increase in number of people falling victims to gun violence over weekend.
+
+After seeing an uptick in the number of victims due to gun violence year on year, we wanted to examine if weekdays and weekends have any kind of variation in the number of victims. With the **Figure 2** containing Number or people injured, killed and total victims over y-axis and day of the week along x-axis. We see that the number of victims is higher over weekends(Saturday and Sunday) compared to the weekdays(Monday-Friday).
+
+
+```{r,,echo=FALSE, message=FALSE,fig.align='center', warning=FALSE,fig.width=6,fig.height=3}
+library(lubridate)
+#group by weekdays
+gunViolenceWeekDay<-gun_rawdata%>%select("date","n_killed","n_injured")
+gunViolenceWeekDay$victims <- gunViolenceWeekDay$n_killed + gunViolenceWeekDay$n_injured
+gunViolenceWeekDay$date<- wday(gunViolenceWeekDay$date,label=TRUE)
+
+gunViolenceWeekDay<-gunViolenceWeekDay%>%
+  group_by(date)%>%
+  summarize('Total Victims'=sum(victims), 
+            'Total Injured'=sum(n_injured), 
+            'Total Killed'=sum(n_killed))
+
+#melt
+plotGunViolWeekDay<-melt(gunViolenceWeekDay, id='date')
+
+#plot
+q<-ggplot(plotGunViolWeekDay,aes(date,value,color=variable, group=variable))+
+  geom_line(stat="identity",position=position_dodge())+ geom_point()+
+ labs(x = "Days of the week",
+       y="Number of people",
+     caption="Figure 2: Distribution of Gun Violence in USA Weekdays vs Weekends") +
+  theme(plot.title = element_text(size= 10, face= "bold"))
+q
+#ggplotly(q) 
+```
+
+
+To take the earlier stated arguement further, people in United States are more active when the sun in bright! We would think that there are more number of people in the open when its summer. This results in higher number of gun violence incidents.
+
+
+We next ventured to analyze if there is a seasonality effect in the number of gun violence incidents over the years. To understand this let us understand the plot **Quarterly Distribution of Gun Violence in USA 2014-2018**. In this  **Figure 3**, we have Number of people injured, killed and the total number of victims along y-axis and quarters of each year between 2014-2018 along x-axis. From the plot, we see that the number of people injured spikes up considerably in **3rd** quarter of every year and stoops down to the lowest point in the **1st** quarter of every year. We can attribute these people being more mobile in the summer months compared to the months in winter.
+
+
+
+
+```{r,echo=FALSE, message=FALSE, fig.align='center',fig.width=6,fig.height=3}
+#YEAR AND QUART TIME SERIES PLOT-- Injured
+seasonalityDistribution<-gun_rawdata%>%
+  select("date","state","n_killed","n_injured")
+seasonalityDistribution$year_quart<-quarter(seasonalityDistribution$date, with_year = TRUE)
+
+seasonalityDistribution<-seasonalityDistribution%>%
+  group_by(year_quart)%>%
+  summarize('Total Injured'=sum(n_injured),
+            'Total Killed'=sum(n_killed)) 
+plotSeasonalityDist<-melt(seasonalityDistribution, id='year_quart')
+
+
+plotSeasonalityDist$year_quart <- as.factor(plotSeasonalityDist$year_quart)
+myplot<-ggplot(plotSeasonalityDist,aes(x=year_quart,y=value,color=variable,group=variable))+
+    geom_line()+geom_point()+
+    labs(x = "Year Quarter",
+         y="Number of people",
+         caption=" Figure 3: Quarterly Distribution of Gun Violence in USA 2014-2018") +
+  #geom_text(aes(label=sprintf("%0d", value)),vjust=-0.3, size=3.5)+
+    theme(plot.title = element_text(size= 10, face= "bold"),
+          axis.text.x = element_text(angle = 45,hjust = 1))
+myplot
+#ggplotly(myplot)
+```
+
+One should be extremely careful before relaxing or tightning the laws pertaining to gun license. Relaxation of gun laws means its easier to acquire a gun which indrectly results in increase in number of people falling victims to gun violence.
+
+
+Gun laws in the United States have been changed during years so we went through a deep analysis for each State to investigate if there was any changing patterns before and after the new regulations. In our analysis,we found how the change in the State Gun Law will effect the number of victims from the gun violence activities. The State of Mississippi changed their law twice during the timeline, the first time was on **Jul-2015** and the second time was on **April-2016**. As of Jul-2015, the concealed carry law was amended to say "No license shall be required under this section for a loaded or unloaded pistol or revolver carried in a purse, handbag, satchel, other similar bag or briefcase or fully enclosed case". On April-2016, the law was further expanded to include belt and shoulder holsters and sheaths. This effectively allows for constitutional carry in Mississippi. From the figure below we can the notice the increment in the number of victims in Mississippi after these two new regulations that have been announced during the data timeline. The red lines indicate the law changing dates. This implies that the more freedom in gun carrying law increases the number of victims.
+
+
+
+```{r,echo=FALSE, message=FALSE, fig.align='center',fig.width=6,fig.height=3}
+gun_select<- select(gun_rawdata,state,date,n_injured,n_killed)
+gun_select$monthyear <- as.Date(as.yearmon(gun_select$date))
+gun_select_new<- select(gun_select,state,monthyear,n_injured,n_killed)
+gun_select_new_dt_group<- group_by(gun_select_new,state,monthyear)
+gun_select_new_dt_group_s<-summarize(gun_select_new_dt_group,injuredsum=sum(n_injured),killedsum=sum(n_killed))
+gun_select_new_dt_group_s$killedsum<- as.numeric(gun_select_new_dt_group_s$killedsum)
+gun_select_new_dt_group_s$injuredsum <- as.numeric(gun_select_new_dt_group_s$injuredsum)
+gun_select_new_dt_group_s$sum= gun_select_new_dt_group_s$killedsum+ gun_select_new_dt_group_s$injuredsum
+
+Mississippi<-gun_select_new_dt_group_s %>% 
+  filter(monthyear >'2014-01-01',state=='Mississippi') %>%
+  select('state','monthyear','sum')
+
+ggplot(Mississippi,aes(x=monthyear,y=sum,group=1))+
+  geom_line()+
+  labs(caption= "Figure 4:State of Mississippi Distribution of Gun-Violence 2014-2018", 
+       x="Year",
+       y="Total Number of victims")+ geom_vline(xintercept=as.Date('2015-07-01'),colour='red',size=2)+
+  theme( plot.caption = element_text(hjust = 0.5),
+      axis.text.x = element_text( hjust = 1))+
+  geom_vline(xintercept = as.Date('2016-04-01'),colour='red',size=2)
+```
+
+
+
+In the **Figure 5**, we calculated the z-scores of the number of people killed in each state to understand the distribution of each  State in the United States. A positive value of z-score indicates that the States are highly vulnerable to Gun violence, which are highlighted in yellow color. A negative value of z-score indicates that these States are less vulnerable to Gun Violence, indicated by blue color. We see that California tops the list with a Z-score of 3.5 and Vermont has the least number of people killed with a Z-score of -0.9.
+
+
+
+```{r , message=FALSE, fig.align='center',fig.width=7,fig.height=3}
+#Z Score Distribution
+library(ggpubr)
+a1<-gun_rawdata%>%group_by(state)%>%
+  summarise(sKilled=sum(n_killed))%>%
+  arrange(desc(sKilled))
+
+# Calculate the z-score of the mpg data
+a1$sKilled_z <- (a1$sKilled -mean(a1$sKilled))/sd(a1$sKilled)
+
+a1$grp <- factor(ifelse(a1$sKilled_z < 0, "low", "high"), 
+                     levels = c("low", "high"))
+
+
+d<-ggbarplot(a1, x = "state", y = "sKilled_z",
+          fill = "grp",           # change fill color by mpg_level
+          color = "white",            # Set bar border colors to white
+          palette = "jco",            # jco journal color palett. see ?ggpar
+          sort.val = "desc",          # Sort the value in descending order
+          sort.by.groups = FALSE,     # Don't sort inside each group
+          x.text.angle = 90,          # Rotate vertically x axis texts
+          y.text.angle = 0,
+          x.text.size = 15,
+          ylab = "Killed Population z-score",
+          xlab = "States in USA",
+          caption = "Figure 5: Statewise Distribution of Number of People Killed - Mean Score Distribution",
+          legend.title="Z-score",
+          #rotate = TRUE,
+          ggtheme = theme_minimal()
+          ) 
+(d+theme( plot.caption = element_text(hjust = 0.5),
+         #))#,
+         axis.title.y = element_text(size= 10,face="plain")))
+```
+
+The number of people killed due to gun violence are dependent on numerous factors such as number people in a city, number of people posessing guns, density of population to name a few. 
+
+To understand the spread of numbers of incidents in cities, we came up with a plot to show the top five cities in United states in **Figure 6** which has the highest number of gun violence incidents. This gives us great insights into how the incidents are spread out in California state. Although California has the highest number of incidents, none of the cities from California feature in the top 5 cities when it comes to numbers of incidents. On the contrary, Illinois being 4th in the list of highest number of incidents still has its capital Chicago topping the list when it comes to cities with the highest number of incidents. This suggests that the number of incidents is concentrated in Chicago as compared to other cities in Illinois.   
+
+
+```{r , message=FALSE, fig.align='center',fig.width=6,fig.height=3}
+#top 5 states
+s_tkilled<-gun1%>% group_by(city_or_county) %>% summarise(skilled=sum(n_killed))%>%arrange(desc(skilled))%>%rename(city=city_or_county)
+top_states<-s_tkilled$city[1:5]
+
+newtop<-subset(gun1,city_or_county%in%top_states,select=c("date","city_or_county","n_killed"))%>%group_by(date,city_or_county)%>%summarize(skill=sum(n_killed))%>%rename(city=city_or_county) %>% filter(date<2018)
+
+#plot
+a<-ggplot(newtop,aes(date,skill,color=city))+geom_line()+labs(caption=" Figure 6: Top 5 Cities by the highest number of people killed", colour= "Cities", y="Number Of People Killed", x="Year")+theme(plot.title=element_text(size=10,  face="bold"))+ theme(legend.title = element_text( size=10, face="bold"))
+a
+```
+
+The number of incidents due to gun violence vary a lot in United States and states with higher population tend to have higher number of incidents.
+
+The **Figure 7** displays the map of the United States which shows the total number of incidents related to the population size of each States. Although Illinois ranked as the first highest state with the total number of incident, the rank changed related to the size of the population. Surprisingly, Louisiana took the first place according to the size of the population while California ranked as the lowest comparing to Wyoming and Vermont.
+
+
+
+
+
+```{r , message=FALSE, fig.align='center',fig.width=6,fig.height=4}
+#sum of victims grouped by states
+sum_victims<-gun1%>% group_by(state) %>% summarize(sumvic=sum(victims), suminj=sum(n_injured), sumkill=sum(n_killed), sumincidents=n())
+#add population 2018 manually
+sum_victims$population<-c(4888949,738068,7123898,3020327,39776830,5684203,3588683,971180,703608,21312211,10545138,1426393,1753860,12768320,6699629,3160553,2918515,4472265,4682509,1341582,6079602,6895917,9991177,5628162,2982785,6135888,1062330,1932549,3056824,1350575,9032872, 2090708,19862512,10390149,755238,11694664,3940521,4199563,12823989,1061712,5088916,877790,6782564,28704330,3159345,623960,8525660,7530552,1803077,5818049,573720)
+#calculate incident per 100000
+sum_victims$incidentper100000<-(sum_victims$sumincidents/sum_victims$population)*100000
+#merge with map_data
+mdata<-map_data("state")
+m<-merge(mdata,sum_victims, by.x="region", by.y="state", all.x=T)
+select_m<-select(m,"region","long","lat","group","order","sumvic","suminj","sumkill","sumincidents")
+colnames(select_m)<-c("region","long","lat","group","order","Victims","Injured","Killed","Incidents")
+m_sumvictims<-melt(select_m,id=1:5)
+#map 1 (facet)
+
+a<-ggplot(m_sumvictims,aes(x=long, y=lat,group=group))+geom_polygon(aes(fill= value), colour=alpha("white",1/2),size=0.2)+
+  theme_bw()+
+ scale_fill_continuous(low="light blue", high="dark blue")  +
+  facet_wrap(~variable,nrow=2)+ 
+   labs(x = " ",
+        y=" ",
+        caption="Figure 7: Maps showing States with The Most and Least Gun Violence 2014-2018 ")+
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        plot.caption = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "grey"),
+        panel.grid.major = element_line(color = "grey"))
+  
+a
+```
+
+Many gun violence incidents end up misfortunate for many people who are not at all related to the incident. As many gun violence incidents take place in residential areas.
+
+We wanted to understand the most common places where people fall victim to gun violence. Although we did not have this data for all the records. We managed to get a word cloud based on the number of records we had for the place of incident. We see that most numbers of incidents occurred in an apartment or apartment complexes. In the word cloud as shown in **Figure 8**, we see the word **apartments** standing out indicating that most of the Gun Violence took a place in the Apartments, however we would like to highlight the fact that our data set did not have the details of the occurrence of the Incident, it is purely based on the data that we 
+have.
+
+```{r wordCloud,message=FALSE,results='hide', warning=FALSE, fig.align='center',fig.width=6,fig.height=5}
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+
+loc_desc<-data.frame(gun_rawdata%>%na.omit()%>%select(location_description))
+
+
+b<-wordcloud(loc_desc$location_description, 
+          max.words = 50, 
+          min.freq = 1, 
+           colors=brewer.pal(8, "Dark2"),
+          random.color=TRUE) 
+b
+```
+            Figure 8: Word Cloud showing Location of Occurance of Killed Incident
+
+
+
+# 5.Model:
+
+The ability to forecast the number of incidents gives us an opportunity to be vigilant in certain cities on certain days of the week. It also given the opportunity for law enforecement agencies to take precautionary measures to avoid the gun violence incidents.
+
+```{r echo=FALSE,warning=FALSE,message=FALSE, results='hide'}
+library(forecast)
+library(tidyquant)
+library(timetk)
+library(sweep)
+
+
+```
+
+
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results='hide'}
+gun2<-gun_rawdata%>% select(state,date,n_injured,n_killed)
+gun2$monthyear <- as.Date(as.yearmon(gun2$date))
+gun2_select<-gun2%>%select(state,monthyear,n_injured,n_killed)%>%group_by(state,monthyear)%>%summarize(injuredsum=sum(n_injured),killedsum=sum(n_killed))
+gun2_select$killedsum<- as.numeric(gun2_select$killedsum)
+gun2_select$injuredsum <- as.numeric(gun2_select$injuredsum)
+gun2_select$sum=gun2_select$killedsum+ gun2_select$injuredsum
+
+Illinois<-gun2_select%>% 
+  filter(state=='Illinois') %>%
+  select('state','monthyear','sum')
+
+#time series for Illinois.
+tsum2<-ts(Illinois$sum,start=c(2014,1),frequency = 12)
+plot(tsum2)
+#decomposition (data satisfies all the assumptions of ARIMA modeling, mainly, stationarity and seasonality)
+d_tsum2<-decompose(tsum2)
+plot(d_tsum2)
+#calculate diff
+tsum2_diff<-diff(tsum2, diffrences= 1)
+plot(tsum2_diff)
+#calculate acf
+acf(tsum2_diff, lag.max = 20)
+pacf(tsum2_diff, lag.max = 20)
+#arimamodel
+library(forecast)
+rmodel2<-auto.arima(tsum2)
+summary(rmodel2)
+#find best model
+auto.arima(tsum2, trace=TRUE)
+#fitted model
+Illinois$fitted<-fitted(rmodel2)
+#diagnostic of residuals
+acf(resid(rmodel2))
+#plot fitted vs residuals
+qplot(fitted(rmodel2),resid(rmodel2),geom="point")
+#test if there is any correlation (P>0.05 THEN NO CORRELATION)
+Box.test(rmodel2$residuals, lag=20, type="Ljung-Box")
+#box test result
+library(FitAR)
+boxresult<-LjungBoxTest (rmodel2$residuals,k=2,StartLag=1)
+plot(boxresult[,3],main= "Ljung-Box Q Test", ylab= "P-values", xlab= "Lag")
+qqnorm(rmodel2$residuals)  # non-significance, The ACF of the residuals shows no significant autocorrelations.
+qqline(rmodel2$residuals) #The values are normal as they rest on a line and aren’t all over the place
+#fitted missi sum vs actual
+plot(tsum2)
+lines(fitted(rmodel2),col="red")
+
+```
+
+
+(This part for the paper)
+```{r}
+#table
+Coef<-rmodel2$coef
+Stdev<-sqrt(diag(rmodel2$var.coef))
+table<-data.frame(Coef,Stdev)
+#fliptable
+final_table <- as.data.frame(t(table))
+knitr::kable(final_table[, c('ar1', 'ar2','sar1')],
+             row.names = T,
+             col.names = c("$\\phi_{1}$","$\\phi_{2}$","$\\tau$"))
+             
+```
+
+on-Seasonal:
+$Y_{t}-Y{t-1}= \phi_{1}(Y_{t-1}-Y_{t-2})+ \phi_{2}(Y_{t-2}-Y_{t-3})+e_{t}$
+
+Seasonal:
+$Y_{t}-Y{t-1}= \tau(Y_{t-1}-Y_{t-2})+e_{t}$
+
+```{r}
+#forecasted value
+fcast2<-forecast(rmodel2)
+plot(fcast2)
+
+```
+
+
+
+
+# 6.Conclusion and Future Direction of Work:
+
+In summary, we have seen a trend and seasonality effect in the number of gun violence incidents occuring across United States. From our first piece of analysis we observed an increasing trend in number of incidents, number of killed and hence the total number of people over the years under consideration. 
+
+We further analyzed the number of people injured,killed and total victims over each day of the week and observed that the number of gun violence incidents occurring over weekends are far higher compared to the weekdays.
+
+We validated if changes in laws pertaining to guns have an impact on the number of incidents. In the scenario that we analysed, we found that the relaxation of gun laws lead to increase in the number of incidents.
+
+We analysed the factors affecting the the gun violence incidents by comparing the cities with top 5 number of incidents. We came to thte conclusion that population is one of the factors and not the only factor affecting the number of gun violence incidents.
+
+
+The following analysis involved mapping the the coordinates of states in United States and color coding the number of incidents across the country. A deeper color indicating higher number of cumulative incidents and lighter color signifying the contrary. The maps faceted by the number of killed, injured and total number of incidents gives a good indication of the spread across the country.
+
+
+The word cloud helped us in identifying the places where gun violence is prevelant extensively. We found that apartments, parks and schools are the places with most number of incidents. These places are generally highly populated thus leading to higher number of people falling victims.
+
+
+The forecasting model predicts the number of people either injured or killed in the state of Illinois. We have data till the first quarter of 2018, the forecasting model predicts the number of incidents for the next two years. As per the forecasting model, we would expect a significant decrease in the number of gun violence incidents ocurring in the next two years.
+
+
+The future direction of work could be to attain a deeper understanding of changes in gun laws in different states of United States. In our analysis we have provided an example where relaxation of guns laws leading to higher number of incidents. We will have to evaluate if the contrary of tightning of gun laws leading lower number of incidents is true.
+
+We would also see a possible future work in the direction of role of law enforcement agency personnels. We would assume that cities with higher number of law enforcements agents have fewer incidents. This would be a good hypothesis to test as if this can be proved that having higher number of law enforcement agents can decrease the number of incidents then we have a possible solution to the issue of gun violence.
+
+
+
+#References:
+[1.] "Senate Bill 2394 (As Sent to Governor)", Mississippi Legislature, 2015. Retrieved April 18, 2016.
+
+[2.] "NRA-ILA. "NRA-ILA Mississippi: Gov. Phil Bryant Signs NRA-Backed Permitless Carry Bill & Other Pro-Second Amendment Measures into Law!". NRA-ILA. Retrieved 2016-04-16.
+
+[3.] "Staff, WLOX. "Gov. Bryant signs Church Protection Act". www.wdam.com. Retrieved 2016-04-16.
+
+[4.] "Police Employee Data 2016 - by State by Counties - Dataset by Ucr." Data.world, 9 Dec. 2017, data.world/ucr/police-employee-data-2016-by-state-by-counties.
+
+[5.] "Table 26." FBI, FBI, 18 Sept. 2017, ucr.fbi.gov/crime-in-the-u.s/2016/crime-in-the-u.s.-2016/tables/table-26/table-26.xls/view.
+
+[6.]Ko, James. "Gun Violence Data." Kaggle: Your Home for Data Science, 15 Apr. 2018, www.kaggle.com/jameslko/gun-violence-data.
+
+[7.]"Analysis | The Surprising Way Gun Violence Is Dividing America." The Washington Post, WP Company, 31 May 2018, www.washingtonpost.com/news/wonk/wp/2018/05/31/the-surprising-way-gun-violence-is-dividing-america/?utm_term=.11736074b075.
+
+[8.]"Gun Violence Archive." Gun Violence Archive, www.gunviolencearchive.org/.
+
+[9.]Lopez. "America's Unique Gun Violence Problem, Explained in 17 Maps and Charts." Vox, Vox, 29 June 2018, www.vox.com/policy-and-politics/2017/10/2/16399418/us-gun-violence-statistics-maps-charts.
