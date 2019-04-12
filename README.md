@@ -1,5 +1,6 @@
 # gun-violence-incidents--data-science
 A data science project to analyze the number of gun violence incidents in United States using R.
+Link to the final presentation: https://rpubs.com/vivek_bhat/gunViolence
 
 We used R extensively to cleanse, conform and visualize the data. We also built a Shiny application for this dataset. Our main focus in this application was to tell a story on how number of gun violence incidents are changing. 
 
